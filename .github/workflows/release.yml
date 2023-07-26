@@ -1,0 +1,40 @@
+name: Release
+
+on:
+  push:
+    # Pattern matched against refs/tags
+    tags:
+      - '**'           # Push events to every tag including hierarchical tags like v1.0/beta
+permissions:
+  id-token: write   # This is required for requesting the JWT
+  contents: read    # This is required for actions/checkout
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - id: meta
+        name: "Create image meta"
+        shell: bash
+        run: |
+          echo "image_tag=${GITHUB_REF_NAME##*/}" >> $GITHUB_OUTPUT
+          echo "image_repository=la-visitor-tracker-app" >> $GITHUB_OUTPUT
+          echo "commit_short_sha=${GITHUB_SHA::8}" >> $GITHUB_OUTPUT
+      - uses: actions/checkout@v3
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::841209751833:role/qla-shared-infra-github-actions
+          aws-region: us-east-1
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          registry-type: public
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: Dockerfile
+          target: prod
+          push: true
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ steps.meta.outputs.image_repository }}:${{ steps.meta.outputs.image_tag }}

@@ -1,6 +1,7 @@
 import os
 from typing import Optional
 
+import asyncio
 from aiohttp import web
 import datetime
 import math
@@ -10,7 +11,6 @@ from elasticsearch import AsyncElasticsearch
 from redis.asyncio.client import Redis
 
 logging.basicConfig(level=logging.INFO)
-
 
 redis_url = os.getenv('REDIS_URL')
 if not redis_url:
@@ -87,7 +87,6 @@ async def track_visit(request):
                 redis.call('expire', KEYS[3], 140)
     """
 
-
     browser = request.query.get("B")
     session = request.query.get("S")
     page_title = request.query.get("pt")
@@ -99,19 +98,17 @@ async def track_visit(request):
     visitor_new = request.query.get("vn")
     ip = request.remote
     request.query.get("jstk")
-    await redis.eval(command, 3, tenant_id + "_" + browser, current_list, next_list, session, now,
-                     datetime.datetime.now().timestamp(), page_url, page_ref, ip, request.headers["User-Agent"], screen,
-                     user_details, visitor_new, browser)
-
-
     index = "la_perf_pagevisit_v1.1_" + datetime.date.today().strftime("%Y_%m_%d")
 
-    await es.index(index=index, document={"b": browser, "dv": now, "t": page_title, "u": page_url, "r": page_ref,
-                                          "tenant_id": tenant_id})
-
+    await asyncio.gather(redis.eval(command, 3, tenant_id + "_" + browser, current_list, next_list, session, now,
+                                    datetime.datetime.now().timestamp(), page_url, page_ref, ip,
+                                    request.headers["User-Agent"], screen,
+                                    user_details, visitor_new, browser),
+                         es.index(index=index,
+                                  document={"b": browser, "dv": now, "t": page_title, "u": page_url, "r": page_ref,
+                                            "tenant_id": tenant_id}))
 
     return web.Response(text="")
-
 
 
 app = web.Application(logger=logging.root)
