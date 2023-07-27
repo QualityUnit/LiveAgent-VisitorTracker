@@ -71,8 +71,26 @@ async def track_button_impression(request):
 async def get_time():
     return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+async def is_crawler(request):
+    useragent = request.headers.get('User-Agent')
+    if useragent is None:
+        return False
+    useragent = useragent.lower()
+
+    crawlers = ['googlebot', 'robot', 'slurp', 'yahooseeker', 'teoma', 'crawl', 'spider', 'msnbot', 'bingbot', 'adsbot', 'erbot', 'niki-bot', 'hrbot', 'yandex.com/bots', 'facebookexternalhit', 'facebot', 'bitlybot', 'tweetmemebot', 'linkisbot', 'datagnionbot', 'linkfluence.com', 'socialrankiobot', 'paperlibot', 'duckduckbot', 'skypeuripreview', 'semrushbot', 'dotbot', 'aspiegelbot', 'mediumbot', 'pinterestbot', 'nativeaibot', 'diffbot', '12bot', 'zbot', 'xbot', 'cloudflare-alwaysonline', 'abot', 'quora-bot', 'applebot']
+    whitelist_crawlers = ['pixelrobot']
+
+    if useragent in whitelist_crawlers:
+        return False
+
+    if useragent in crawlers:
+        return True
+
+    return False
 
 async def track_visit(request):
+    if await is_crawler(request):
+        return web.Response(text="")
     tenant_id = await get_tenant_id(request)
     time = datetime.datetime.now().timestamp()
     next_list = get_next_list(tenant_id, time)
