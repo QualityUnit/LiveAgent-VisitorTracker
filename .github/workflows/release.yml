@@ -37,4 +37,5 @@ jobs:
           file: Dockerfile
           target: prod
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: ${{ steps.login-ecr.outputs.registry }}/${{ steps.meta.outputs.image_repository }}:${{ steps.meta.outputs.image_tag }}
