@@ -8,8 +8,16 @@ Page visits are stored in Elasticsearch index, each day a new index is used.
 
 ## Configuration
 environment variables:
-- `REDIS_URL` e.g.: `redis://redis:6379`
-- `ELASTICSEARCH_URL` e.g.: `http://elasticsearch:9200`
+- `REDIS_URL`:
+  - `redis://redis:6379`
+  - `redis://[[username]:[password]]@localhost:6379/0` creates a TCP socket connection. See more at: https://www.iana.org/assignments/uri-schemes/prov/redis 
+  - `rediss://[[username]:[password]]@localhost:6379/0` creates a SSL wrapped TCP socket connection. See more at: https://www.iana.org/assignments/uri-schemes/prov/rediss
+  - `unix://[username@]/path/to/socket.sock?db=0[&password=password]` creates a Unix Domain Socket connection.
+- `ELASTICSEARCH_URL` e.g.: `http://elasticsearch:9200` (multiple hosts can be specified, separated by `,` comma)
+- `ELASTIC_USER` & `ELASTIC_PASS` Basic auth credentials for Elasticsearch: 
+- `ELASTIC_CA`: path to CA certificate file for Elasticsearch
+- `ELASTIC_APIKEY_ID` and `ELASTIC_APIKEY_KEY` apikey auth credentials for Elasticsearch 
+- `ELASTIC_TIMEOUT` Elasticsearch request timeout
 
 
 ## Usage
