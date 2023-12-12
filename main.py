@@ -23,7 +23,17 @@ logging.error("elastic_url: " + elastic_url)
 logging.error("redis_url: " + redis_url)
 pool = redis.connection.ConnectionPool.from_url(url=redis_url)
 redis = Redis(connection_pool=pool)
-es = AsyncElasticsearch(hosts=[elastic_url])
+params = {}
+if os.getenv('ELASTIC_USER') and os.getenv('ELASTIC_PASS'):
+    params['basic_auth'] = ((os.getenv('ELASTIC_USER')), (os.getenv('ELASTIC_PASS')))
+if os.getenv('ELASTIC_TIMEOUT'):
+    params['request_timeout'] = os.getenv('ELASTIC_TIMEOUT')
+if os.getenv('ELASTIC_CA'):
+    params['ca_certs'] = os.getenv('ELASTIC_CA')
+if os.getenv('ELASTIC_APIKEY_ID') and os.getenv('ELASTIC_APIKEY_KEY'):
+    params['api_key'] = (os.getenv('ELASTIC_APIKEY_ID'), os.getenv('ELASTIC_APIKEY_KEY'))
+
+es = AsyncElasticsearch(hosts=elastic_url.split(","), **params)
 
 
 def get_next_list(tenant_id: str, timestamp: Optional[float] = None) -> str:
