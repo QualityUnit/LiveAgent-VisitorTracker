@@ -19,8 +19,8 @@ if not redis_url:
 elastic_url = os.getenv('ELASTIC_URL')
 if not elastic_url:
     raise Exception('ELASTIC_URL environment variable not set')
-logging.error("elastic_url: " + elastic_url)
-logging.error("redis_url: " + redis_url)
+logging.info("elastic_url: " + elastic_url)
+logging.info("redis_url: " + redis_url)
 pool = redis.connection.ConnectionPool.from_url(url=redis_url)
 redis = Redis(connection_pool=pool)
 params = {}
